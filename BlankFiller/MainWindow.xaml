@@ -4,7 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:BlankFiller.ViewModels"
+        d:DataContext="{d:DesignInstance vm:MainWindowViewModel}"
         mc:Ignorable="d"
+        WindowState="Maximized"
         Title="Заполнятор бланков" Height="800" Width="1000">
     <Window.InputBindings>
         <KeyBinding Command="{Binding Path=Open}" 
@@ -26,14 +28,23 @@
             <RowDefinition Height="32"/>
             <RowDefinition Height="41"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="41"/>
+
         </Grid.RowDefinitions>
 
         <Menu Background="#42454f" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">
             <MenuItem Header="Файл" Height="32" Foreground="White">
-                <MenuItem Command="{Binding Path=Open}" InputGestureText="Ctrl+O" Foreground="Black" Header="Открыть" />
-                <MenuItem Command="{Binding Path=Close}" Foreground="Black" Header="Сохранить все страницы" />
-                <MenuItem Command="{Binding Path=Save}" Foreground="Black" Header="Сохранить выбранные" />
-                <MenuItem Command="{Binding Path=SaveSelected}" Foreground="Black" Header="Закрыть" />
+                <MenuItem Command="{Binding Path=Open}" InputGestureText="Ctrl+O" Foreground="Black" Header="Открыть" >
+                    <MenuItem.Icon>
+                        <Image Source="Icons/open.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Command="{Binding Path=Save}" InputGestureText="Ctrl+S" Foreground="Black" Header="Сохранить выбранные страницы">
+                    <MenuItem.Icon>
+                        <Image Source="Icons/save.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
                 <Separator />
                 <MenuItem Command="{Binding Path=ExitFromApplication}" InputGestureText="Alt+F4"  Foreground="Black" Header="Выход" />
             </MenuItem>
@@ -45,12 +56,27 @@
 
         </Menu>
 
-        <Border Grid.Column="0" Background="#ffffff" Grid.Row="1" Grid.ColumnSpan="2" BorderThickness="0 0 0 1">
-            <TextBlock>Тут будет тулбар. Его надо сделать</TextBlock>
+        <Border Grid.Column="0" Background="#ffffff" BorderBrush="#cfd8e0" Grid.Row="1" Grid.ColumnSpan="2" BorderThickness="0 0 0 1">
+
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource ResourceKey=ToolbarButton}" Command="{Binding Path=Open}">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Height="16" Margin="5,0" Source="Icons/open.png"/>
+                        <TextBlock Margin="0,0,5,0">Открыть</TextBlock>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource ResourceKey=ToolbarButton}" Command="{Binding Path=Save}">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Height="16" Margin="5,0" Source="Icons/save.png"/>
+                        <TextBlock Margin="0,0,5,0">Сохранить выбранные страницы</TextBlock>
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+
 
         </Border>
 
-        <ScrollViewer Grid.Column="0" Grid.Row="2" Background="#eef1f4">
+        <ScrollViewer Grid.Column="0" Grid.Row="2" Grid.RowSpan="2" Background="#eef1f4">
             <ItemsControl ItemsSource="{Binding Path=Pages}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:PageViewModel}">
@@ -82,10 +108,52 @@
         </ScrollViewer>
 
         <Grid Grid.Column="1" Grid.Row="2" Background="#f9fbfc">
+            <TextBlock 
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Text="Выберите изображение для редактирования" 
+                Visibility="{Binding Path=NoImageSelectedVisibility}" />
+
+            <TextBlock 
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Text="Выбрано несколько. Вы можете сохранить только выбранные изображения" 
+                Visibility="{Binding Path=MultipleImageSelectedVisibility}" />
+
+            <ScrollViewer 
+                HorizontalScrollBarVisibility="Auto" 
+                VerticalScrollBarVisibility="Auto" 
+                Padding="10" 
+                Visibility="{Binding Path=OneImageSelectedVisibility}">
+                
+                <Image 
+                    Width="{Binding Path=SelectedPageDisplayedWidth}"
+                    Source="{Binding Path=SelectedPageViewModel.Original}" />
+            </ScrollViewer>
+
+
+
 
         </Grid>
 
-        <Border Grid.Row="2" Grid.ColumnSpan="2" Visibility="{Binding Path=FileNotSelectedVisibility}">
+        <Border Grid.Column="1" Background="#ffffff" Grid.Row="3" BorderBrush="#cfd8e0" BorderThickness="0 1 0 0">
+            <StackPanel Visibility="{Binding Path=OneImageSelectedVisibility}" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Background="Transparent" Command="{Binding Path=ScaleDown}" BorderBrush="Transparent" Margin="7,0" Height="16">
+                    <Image  Source="Icons/minus.png"   />
+                </Button>
+                <Slider 
+                    Margin="0,10,0,0"
+                    Width="200"
+                    Minimum="{Binding Path=MinScale}"
+                    Maximum="{Binding Path=MaxScale}"                    
+                    Value="{Binding Path=ImageScale}"/>
+                <Button Background="Transparent" Command="{Binding Path=ScaleUp}" BorderBrush="Transparent" Margin="7,0" Height="16">
+                    <Image  Source="Icons/plus.png"   />
+                </Button>
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="2" Grid.ColumnSpan="2" Grid.RowSpan="2" Visibility="{Binding Path=FileNotSelectedVisibility}">
             <Border.Background>
                 <SolidColorBrush Opacity="0.2" Color="Black" />
             </Border.Background>
@@ -98,12 +166,14 @@
             <Border.Background>
                 <SolidColorBrush Opacity="0.2" Color="Black" />
             </Border.Background>
-            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="300" Height="150" Background="#ffffff">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="300" Height="100" Background="#ffffff">
                 <StackPanel Margin="10">
                     <TextBlock Text="{Binding Path=Progress.Message}"/>
-                    <ProgressBar Margin="0,10" Height="32" Maximum="{Binding Path=Progress.Total}" Value="{Binding Path=Progress.Progress}"/>
+                    <ProgressBar Margin="0,10" Height="16" Maximum="{Binding Path=Progress.Total}" Value="{Binding Path=Progress.Progress}"/>
                 </StackPanel>
             </Grid>
         </Border>
+
+
     </Grid>
 </Window>

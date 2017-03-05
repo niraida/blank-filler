@@ -8,6 +8,7 @@ namespace BlankFiller
         {
             InitializeComponent();
             DataContext = new MainWindowViewModel();
+       
         }
     }
 }

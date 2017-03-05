@@ -75,5 +75,11 @@ namespace BlankFiller.UndoRedo
             UndoedCommands.RemoveAt(Commands.Count - 1);
             Commands.Add(commandToRedo);
         }
+
+        internal void Clear()
+        {
+            UndoedCommands.Clear();
+            Commands.Clear();
+        }
     }
 }
