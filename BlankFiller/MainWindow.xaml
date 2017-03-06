@@ -23,6 +23,7 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="177"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="32"/>
@@ -32,7 +33,7 @@
 
         </Grid.RowDefinitions>
 
-        <Menu Background="#42454f" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2">
+        <Menu Background="#42454f" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="3">
             <MenuItem Header="Файл" Height="32" Foreground="White">
                 <MenuItem Command="{Binding Path=Open}" InputGestureText="Ctrl+O" Foreground="Black" Header="Открыть" >
                     <MenuItem.Icon>
@@ -52,11 +53,18 @@
             <MenuItem Header="Правка" Foreground="White">
                 <MenuItem Command="{Binding Path=UndoRedoStack.Undo}" InputGestureText="Ctrl+Z" Foreground="Black" Header="Отменить" />
                 <MenuItem Command="{Binding Path=UndoRedoStack.Redo}" InputGestureText="Ctrl+Y" Foreground="Black" Header="Повторить" />
+                <Separator/>
+                <MenuItem Command="{Binding Path=AddTextBlock}" Foreground="Black" Header="Добавить текст на бланк" />
+                <MenuItem Command="{Binding Path=EditTextBlock}" Foreground="Black" Header="Редактировать текст на бланке" />
+                <MenuItem Command="{Binding Path=DeleteTextBlock}" Foreground="Black" Header="Удалить текст на бланке" />
+                <Separator/>
+                <MenuItem Command="{Binding Path=ImportTextBlocksFromFile}" Foreground="Black" Header="Импорт текстовых полей из файла" />
+                <MenuItem Command="{Binding Path=ExportTextBlocksToFile}" Foreground="Black" Header="Экспорт текстовых полей в файл" />
             </MenuItem>
 
         </Menu>
 
-        <Border Grid.Column="0" Background="#ffffff" BorderBrush="#cfd8e0" Grid.Row="1" Grid.ColumnSpan="2" BorderThickness="0 0 0 1">
+        <Border Grid.Column="0" Background="#ffffff" BorderBrush="#cfd8e0" Grid.Row="1" Grid.ColumnSpan="3" BorderThickness="0 0 0 1">
 
             <StackPanel Orientation="Horizontal">
                 <Button Style="{StaticResource ResourceKey=ToolbarButton}" Command="{Binding Path=Open}">
@@ -70,6 +78,25 @@
                         <Image Height="16" Margin="5,0" Source="Icons/save.png"/>
                         <TextBlock Margin="0,0,5,0">Сохранить выбранные страницы</TextBlock>
                     </StackPanel>
+                </Button>
+
+                <TextBlock Margin="30,12,0,0" FontWeight="Bold">Текстовые поля на бланке:</TextBlock>
+                <Button Margin="5,0" Padding="5,0" Style="{StaticResource ResourceKey=ToolbarButton}" Command="{Binding Path=AddTextBlock}">
+                    Добавить
+                </Button>
+                <Button Margin="5,0"  Padding="5,0" Style="{StaticResource ResourceKey=ToolbarButton}" Command="{Binding Path=EditTextBlock}">
+                   Редактировать
+                </Button>
+                <Button Margin="5,0" Padding="5,0" Style="{StaticResource ResourceKey=ToolbarButton}" Command="{Binding Path=DeleteTextBlock}">
+                    Удалить
+                </Button>
+
+
+                <Button Padding="5,0" Margin="30,0,5,0"  Style="{StaticResource ResourceKey=ToolbarButton}" Command="{Binding Path=ImportTextBlocksFromFile}">
+                    Импорт
+                </Button>
+                <Button Padding="5,0" Style="{StaticResource ResourceKey=ToolbarButton}" Command="{Binding Path=ExportTextBlocksToFile}">
+                    Экспорт 
                 </Button>
             </StackPanel>
 
@@ -98,7 +125,7 @@
                                         </Style.Triggers>
                                     </Style>
                                 </Border.Style>
-                                <Image Source="{Binding Path=Original}"/>
+                                <Image Source="{Binding Path=ImagePath}"/>
                             </Border>
                             <TextBlock HorizontalAlignment="Center" Text="{Binding Path=Number}" />
                         </StackPanel>
@@ -126,9 +153,11 @@
                 Padding="10" 
                 Visibility="{Binding Path=OneImageSelectedVisibility}">
                 
-                <Image 
+                <Image
+                    Name="BlankImage"
+                    MouseDown="BlankImageOnMouseDown"
                     Width="{Binding Path=SelectedPageDisplayedWidth}"
-                    Source="{Binding Path=SelectedPageViewModel.Original}" />
+                    Source="{Binding Path=SelectedPageViewModel.ImagePath}" />
             </ScrollViewer>
 
 
@@ -137,7 +166,8 @@
         </Grid>
 
         <Border Grid.Column="1" Background="#ffffff" Grid.Row="3" BorderBrush="#cfd8e0" BorderThickness="0 1 0 0">
-            <StackPanel Visibility="{Binding Path=OneImageSelectedVisibility}" Orientation="Horizontal" HorizontalAlignment="Right">
+            <!--Visibility="{Binding Path=OneImageSelectedVisibility}"-->
+            <StackPanel Visibility="Collapsed" Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Background="Transparent" Command="{Binding Path=ScaleDown}" BorderBrush="Transparent" Margin="7,0" Height="16">
                     <Image  Source="Icons/minus.png"   />
                 </Button>
@@ -162,11 +192,38 @@
             </TextBlock>
         </Border>
 
+        <Grid  Width="177" Grid.Column="2" Grid.Row="2" Grid.RowSpan="2" Background="#eef1f4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <TextBlock Margin="5">Текстовые поля на листе</TextBlock>
+            <ListBox 
+                Grid.Row="1" 
+                Margin="5" 
+                ItemsSource="{Binding Path=SelectedPageViewModel.TextBlocks}"
+                SelectedItem="{Binding Path=SelectedTextBlock}"/>
+        </Grid>
+
+        <Grid
+            Background="#42454f" 
+            Grid.Column="0" 
+            Grid.Row="0" 
+            Grid.RowSpan="2" 
+            Grid.ColumnSpan="3" 
+            Visibility="{Binding Path=SelectPointLabelVisibility}">
+            <TextBlock 
+                HorizontalAlignment="Center" 
+                FontSize="24"
+                VerticalAlignment="Center"
+                Foreground="White">Выберите точку на бланке для нового текста (левый верхний угол для текста)</TextBlock>
+        </Grid>
+
         <Border Grid.Row="0" Grid.ColumnSpan="3" Grid.RowSpan="3" Visibility="{Binding Path=Progress.Visibility}">
             <Border.Background>
                 <SolidColorBrush Opacity="0.2" Color="Black" />
             </Border.Background>
-            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="300" Height="100" Background="#ffffff">
+            <Grid HorizontalAlignment="Center" VerticalAlignment="Center" Width="300" Height="70" Background="#ffffff">
                 <StackPanel Margin="10">
                     <TextBlock Text="{Binding Path=Progress.Message}"/>
                     <ProgressBar Margin="0,10" Height="16" Maximum="{Binding Path=Progress.Total}" Value="{Binding Path=Progress.Progress}"/>
